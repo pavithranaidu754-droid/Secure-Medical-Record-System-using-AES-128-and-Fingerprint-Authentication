@@ -1,0 +1,108 @@
+module aes_128 (
+    input  wire         clk,
+    input  wire         rst,
+    input  wire         start,
+    input  wire [127:0] data_in,     // AES data
+    input  wire [127:0] key_seed,    // key derivation seed
+    input  wire         encrypt,     // 1 = encrypt, 0 = decrypt
+    output reg  [127:0] ciphertext,
+    output reg          done 
+);
+
+    reg  [3:0]   round;
+    reg  [127:0] state;
+    reg          busy;
+
+    // -------- KEY GENERATION --------
+    wire [127:0] derived_key;
+    wire [1407:0] round_keys;
+    reg  [127:0] round_key;
+
+    key_derivation kd (
+        .data_in(key_seed),
+        .derived_key(derived_key)
+    );
+
+    key_expansion key_exp (
+        .key(derived_key),
+        .round_keys(round_keys)
+    );
+
+    // -------- WHITENING --------
+    wire [127:0] k0_whiten, k1_whiten;
+    wire [127:0] pre_whitened_data;
+
+    whitening wht (
+        .key_in(derived_key),
+        .k0_whiten(k0_whiten),
+        .k1_whiten(k1_whiten)
+    );
+
+    assign pre_whitened_data = data_in ^ k0_whiten;
+
+    // -------- AES TRANSFORMS --------
+    wire [127:0] sub_bytes_out, shift_rows_out, mix_columns_out;
+    wire [127:0] inv_shift_rows_out, inv_sub_bytes_out;
+    wire [127:0] after_key, inv_mix_columns_out;
+
+    sub_bytes sb (.in(state), .out(sub_bytes_out));
+    shift_rows sr (.in(sub_bytes_out), .out(shift_rows_out));
+    mix_columns mc (.in(shift_rows_out), .out(mix_columns_out));
+
+    InvShiftRows isr (.state_in(state), .state_out(inv_shift_rows_out));
+    InvSubstitutionMatrix isb (
+        .Data(inv_shift_rows_out),
+        .Data_out(inv_sub_bytes_out)
+    );
+
+    assign after_key = inv_sub_bytes_out ^ round_key;
+
+    InvMixColumns imc (
+        .state_in(after_key),
+        .state_out(inv_mix_columns_out)
+    );
+
+    // -------- ROUND KEY SELECT --------
+    always @(*) begin
+        if (encrypt)
+            round_key = round_keys[1407 - round*128 -: 128];
+        else
+            round_key = round_keys[1407 - (10 - round)*128 -: 128];
+    end
+
+    // -------- FSM --------
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            round <= 0;
+            state <= 0;
+            busy  <= 0;
+            done  <= 0;
+            ciphertext <= 0;
+        end
+        else if (start && !busy) begin
+            busy  <= 1;
+            done  <= 0;
+            round <= 1;
+
+            if (encrypt)
+                state <= pre_whitened_data ^ round_keys[1407 -: 128];
+            else
+                state <= (data_in ^ k1_whiten) ^ round_keys[127:0];
+        end
+        else if (busy && round < 10) begin
+            state <= encrypt ? (mix_columns_out ^ round_key)
+                             : inv_mix_columns_out;
+            round <= round + 1;
+        end
+        else if (busy && round == 10) begin
+            ciphertext <= encrypt
+                ? ((shift_rows_out ^ round_key) ^ k1_whiten)
+                : ((after_key) ^ k0_whiten);
+
+            busy  <= 0;
+            done  <= 1;
+            round <= 0;
+        end
+    end
+
+endmodule
