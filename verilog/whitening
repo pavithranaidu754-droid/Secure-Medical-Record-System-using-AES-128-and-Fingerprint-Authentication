@@ -1,0 +1,17 @@
+`timescale 1ns / 1ps
+
+module whitening (
+    input  wire [127:0] key_in,
+    output wire [127:0] k0_whiten,
+    output wire [127:0] k1_whiten
+);
+
+    wire [127:0] rot32;
+
+    assign rot32 = {key_in[95:0], key_in[127:96]};
+
+    assign k0_whiten = key_in;
+
+    assign k1_whiten = rot32 ^ 128'h3C3C3C3C_C3C3C3C3_5A5A5A5A_A5A5A5A5;
+
+endmodule
