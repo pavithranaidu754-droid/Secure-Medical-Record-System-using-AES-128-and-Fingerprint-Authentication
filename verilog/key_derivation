@@ -1,0 +1,13 @@
+module key_derivation (
+    input  wire [127:0] data_in,
+    output wire [127:0] derived_key
+);
+
+    wire [127:0] rot32, rot64;
+
+    assign rot32 = {data_in[95:0],  data_in[127:96]};
+    assign rot64 = {data_in[63:0],  data_in[127:64]};
+
+    assign derived_key = data_in ^ rot32 ^ rot64 ^ 128'hA5A5A5A5_5A5A5A5A_F0F0F0F0_0F0F0F0F;
+
+endmodule
