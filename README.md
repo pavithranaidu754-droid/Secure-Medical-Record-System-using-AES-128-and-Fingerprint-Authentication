@@ -1,53 +1,61 @@
-# Secure-Medical-Record-System-using-AES-128-and-Fingerprint-Authentication
-Secure medical record system using AES-128 encryption and fingerprint authentication
+# Secure Medical Record System using AES-128 and Fingerprint Authentication
 
-## Overview
-This project implements a secure medical record access system that combines AES-128 encryption with fingerprint-based authentication. The system ensures that only authorized users can access encrypted medical records, improving data security and patient privacy.
+##  Overview
+This project implements a secure medical record system that combines AES-128 encryption with fingerprint-based authentication to ensure that only authorized users can access sensitive patient information.
 
-## Problem Statement
-Medical records contain highly sensitive information. Traditional password-based systems are vulnerable to unauthorized access, password theft, and cyberattacks. This project enhances security by combining biometric authentication with AES-128 encryption.
+##  Problem Statement
+Medical records contain highly sensitive information that must be protected from unauthorized access. Traditional password-based authentication is vulnerable to attacks and credential theft. This project enhances security by integrating biometric authentication with AES-128 encryption.
 
-## Objectives
-- Secure medical records using AES-128 encryption.
-- Authenticate users using fingerprint biometrics.
-- Prevent unauthorized access to patient data.
-- Demonstrate a hardware-oriented implementation suitable for embedded and FPGA systems.
+##  Objectives
+- Encrypt medical records using AES-128.
+- Authenticate users through fingerprint recognition.
+- Ensure confidentiality and integrity of patient data.
+- Demonstrate a hardware-oriented implementation suitable for FPGA and embedded systems.
 
-## Features
-- AES-128 encryption and decryption
-- Fingerprint-based user authentication
-- Secure storage of medical records
-- High-speed hardware implementation using Verilog
-- Suitable for healthcare IoT applications
-
-## Technologies Used
+## ⚙️ Technologies Used
 - Verilog HDL
-- Xilinx Vivado
 - Python
+- Xilinx Vivado
 - AES-128 Cryptography
 
-## Project Workflow
-
-Fingerprint Scan
-      ↓
-User Authentication
-      ↓
-AES-128 Encryption
-      ↓
-Encrypted Medical Record Storage
-      ↓
-Authorized Access
-      ↓
-Display Medical Record
-
-## Repository Structure
+## Project Architecture
 
 ```
+Fingerprint Scan
+        │
+        ▼
+Fingerprint Authentication
+        │
+        ▼
+AES-128 Encryption
+        │
+        ▼
+Encrypted Medical Record
+        │
+        ▼
+Authorized User
+        │
+        ▼
+Medical Record Display
+```
+
+## ✨ Features
+- AES-128 Encryption with novelty of key derivation 
+- Before and after AES Whitening techniques
+- Fingerprint Authentication
+- Secure Medical Record Storage
+- FPGA-Friendly Design
+- High Data Security
+
+##  Repository Structure
+
+```
+.
 ├── README.md
 ├── verilog/
 ├── python/
+├── docs/
 ├── images/
-├── reports/
-└── docs/
+└── reports/
 ```
 
