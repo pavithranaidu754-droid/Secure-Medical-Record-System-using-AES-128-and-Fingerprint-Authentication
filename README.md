@@ -54,8 +54,6 @@ Medical Record Display
 ├── README.md
 ├── verilog/
 ├── python/
-├── docs/
 ├── images/
-└── reports/
 ```
 
