@@ -1,0 +1,113 @@
+#include <SoftwareSerial.h>
+#include <Adafruit_Fingerprint.h>
+
+SoftwareSerial fingerSerial(2, 3);
+Adafruit_Fingerprint finger = Adafruit_Fingerprint(&fingerSerial);
+
+bool finger_present = false;
+
+void setup() {
+  Serial.begin(9600);
+  fingerSerial.begin(57600);
+
+  if (!finger.verifyPassword()) {
+    while (1);
+  }
+}
+
+void loop() {
+
+  int p = finger.getImage();
+
+  if (p == FINGERPRINT_OK && !finger_present) {
+
+    finger_present = true;
+
+    if (finger.image2Tz(1) != FINGERPRINT_OK) return;
+
+    if (finger.fingerFastSearch() == FINGERPRINT_OK && finger.confidence > 10) {
+
+      Serial.write(finger.fingerID);  // 1–10
+
+    } else {
+      Serial.write(0xFF);
+    }
+  }
+
+  if (p != FINGERPRINT_OK) {
+    finger_present = false;
+  }
+
+  delay(300);
+}
+
+
+
+
+import serial
+import os
+from cryptography.fernet import Fernet
+
+# ================= KEY =================
+KEY_PATH = r"C:\Users\joshi\OneDrive - Amrita vishwa vidyapeetham\Joshi\Joshi\Openlab\medical\secret.key"
+
+with open(KEY_PATH, "rb") as f:
+    key = f.read()
+
+cipher = Fernet(key)
+
+# ================= SERIAL =================
+ser = serial.Serial("COM11", 9600, timeout=1)
+
+# ================= BASE FOLDER =================
+BASE_FOLDER = r"C:\Users\joshi\OneDrive - Amrita vishwa vidyapeetham\Joshi\Joshi\Openlab\AES_Fingerprint_Medical_System\dataset\MedicalFiles"
+
+print("Waiting for FPGA authentication...")
+
+while True:
+    if ser.in_waiting > 0:
+        data = ser.read()
+        user_id = int.from_bytes(data, "big")
+
+        print("Received:", user_id)
+
+        # ✅ VALID USERS 1–10
+        if 1 <= user_id <= 10:
+
+            folder = os.path.join(BASE_FOLDER, f"patient{user_id}")
+
+            if not os.path.exists(folder):
+                print("Folder not found:", folder)
+                continue
+
+            print(f"ACCESS GRANTED -> patient{user_id}")
+
+            # 🔓 DECRYPT ALL FILES
+            for file in os.listdir(folder):
+
+                if not file.endswith(".enc"):
+                    continue
+
+                path = os.path.join(folder, file)
+
+                try:
+                    with open(path, "rb") as f:
+                        enc = f.read()
+
+                    dec = cipher.decrypt(enc)
+
+                    new_path = path.replace(".enc", "")
+
+                    with open(new_path, "wb") as f:
+                        f.write(dec)
+
+                except Exception as e:
+                    print("Skipping:", file)
+
+            # 📂 OPEN FOLDER (IMPORTANT)
+            os.startfile(folder)
+
+            break
+
+        else:
+            print("ACCESS DENIED")
