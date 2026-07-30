@@ -1,0 +1,48 @@
+from cryptography.fernet import Fernet
+import os
+
+KEY_PATH = r"C:\Users\joshi\OneDrive - Amrita vishwa vidyapeetham\Joshi\Joshi\Openlab\medical\secret.key"
+
+with open(KEY_PATH, "rb") as f:
+    key = f.read()
+
+cipher = Fernet(key)
+
+BASE_FOLDER = r"C:\Users\joshi\OneDrive - Amrita vishwa vidyapeetham\Joshi\Joshi\Openlab\AES_Fingerprint_Medical_System\dataset\MedicalFiles"
+
+print("Starting encryption for all 10 users...\n")
+
+for i in range(1, 11):
+
+    folder = os.path.join(BASE_FOLDER, f"patient{i}")
+
+    if not os.path.exists(folder):
+        print(f"Missing folder: patient{i}")
+        continue
+
+    print(f"Encrypting patient{i}...")
+
+    for file in os.listdir(folder):
+
+        path = os.path.join(folder, file)
+
+        if file.endswith(".enc"):
+            continue
+
+        try:
+            with open(path, "rb") as f:
+                data = f.read()
+
+            encrypted = cipher.encrypt(data)
+
+            with open(path + ".enc", "wb") as f:
+                f.write(encrypted)
+
+            os.remove(path)
+
+            print(f"   DONE: {file}")
+
+        except Exception as e:
+            print(f"   ERROR with {file}: {e}")
+
+print("\nALL 10 USERS ENCRYPTED SUCCESSFULLY")
