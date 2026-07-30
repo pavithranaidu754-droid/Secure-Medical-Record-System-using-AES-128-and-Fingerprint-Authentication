@@ -40,4 +40,14 @@ Authorized Access
       ↓
 Display Medical Record
 
+## Repository Structure
+
+```
+├── README.md
+├── verilog/
+├── python/
+├── images/
+├── reports/
+└── docs/
+```
 
